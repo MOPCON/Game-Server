@@ -22,6 +22,9 @@ class KeyPoolController extends Controller
             'key',
             'type',
             'note',
+            'slug',
+            'account',
+            'passwd',
         ]));
 
         return $this->returnSuccess('Store success.', $key);

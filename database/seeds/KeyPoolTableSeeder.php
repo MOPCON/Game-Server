@@ -15,10 +15,13 @@ class KeyPoolTableSeeder extends Seeder
         $faker = Faker\Factory::create();
         $item_count = 0;
 
-        while ($item_count < 5) {
+        while ($item_count < 3) {
             $data = [
                 'key' => $faker->word,
                 'type' => KeyPool::TYPE_TASK,
+                'slug' => $faker->word,
+                'account' => $faker->word,
+                'passwd' => $faker->word,
             ];
 
             KeyPool::create($data);

@@ -19,7 +19,7 @@ $router->post('/invite', 'AuthController@invite');
 $router->get('/getRewardTest', 'RewardController@getRewardTest');
 
 $router->group(['middleware' => 'basicAuth'], function ($router) {
-    $router->get('/qrcode', 'QrCodeController@showImage');
+    $router->get('/qrcode/{slug}', 'QrCodeController@showImage');
 });
 
 $router->group(['middleware' => 'auth:api'], function ($router) {

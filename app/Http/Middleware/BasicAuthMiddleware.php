@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\KeyPool;
 
 class BasicAuthMiddleware
 {
@@ -15,8 +16,10 @@ class BasicAuthMiddleware
       */
     public function handle($request, Closure $next)
     {
-        if ($request->getUser() != env('QRCODE_USER', 'qrcode_user') || $request->getPassword() != env('QRCODE_PASS', 'qrcode_pass')) {
-            $headers = array('WWW-Authenticate' => 'Basic');
+        $headers = array('WWW-Authenticate' => 'Basic');
+
+        $key = KeyPool::where('slug', $request->route('slug'))->firstOrFail();
+        if ($request->getUser() != $key->account || $request->getPassword() != $key->passwd) {
             return response('Invalid Access.', 401, $headers);
         }
         return $next($request);

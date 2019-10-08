@@ -19,5 +19,8 @@ class KeyPool extends Model
         'key',
         'type',
         'note',
+        'slug',
+        'account',
+        'passwd',
     ];
 }
