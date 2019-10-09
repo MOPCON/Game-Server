@@ -16,6 +16,7 @@ class Task extends Model
      */
     protected $fillable = [
         'uid',
+        'vkey_id',
         'name',
         'name_e',
         'description',
@@ -35,5 +36,10 @@ class Task extends Model
         self::creating(function ($model) {
             $model->uid = Str::uuid();
         });
+    }
+
+    public function KeyPool()
+    {
+        return $this->belongsTo('App\KeyPool', 'vkey_id', 'id');
     }
 }

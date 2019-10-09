@@ -23,4 +23,9 @@ class KeyPool extends Model
         'account',
         'passwd',
     ];
+
+    public function tasks()
+    {
+        return $this->hasMany('App\Task', 'vkey_id', 'id');
+    }
 }
