@@ -37,15 +37,6 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
-    public function testRefreshToken()
-    {
-        $response = $this->apiAs('GET', '/refreshToken');
-
-        $response->seeJson([
-            "token_type" => "bearer",
-        ]);
-    }
-
     public function testGetIntro()
     {
         $response = $this->json('GET', '/intro');
@@ -58,7 +49,8 @@ class AuthControllerTest extends TestCase
 
     public function testGetMe()
     {
-        $response = $this->apiAs('GET', '/me');
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user)->json('GET', '/me');
 
         $response->seeJson([
             'success' => true,
@@ -74,7 +66,8 @@ class AuthControllerTest extends TestCase
             'name_e' => $faker->name,
         ]);
 
-        $response = $this->apiAs('GET', '/getTask/' . $mission->uid);
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user)->json('GET', '/getTask/' . $mission->uid);
 
         $response->seeJson([
             'success' => true,
@@ -84,7 +77,8 @@ class AuthControllerTest extends TestCase
 
     public function testGetReward()
     {
-        $response = $this->apiAs('GET', '/getReward');
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user)->json('GET', '/getReward');
 
         $response->seeJson([
             'success' => true,
