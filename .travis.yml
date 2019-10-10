@@ -4,7 +4,7 @@
 
 language: php
 php:
-  - '7.2'
+  - "7.2"
 
 env:
   - DB_CONNECTION=sqlite
@@ -19,6 +19,7 @@ jobs:
         - docker run --rm -v ${TRAVIS_BUILD_DIR}:/app -w /app composer:1.6.5 composer install --ignore-platform-reqs
         - touch database/database.sqlite
         - php artisan migrate --force
+        - ./vendor/bin/phpunit
     - stage: build develop
       if: branch = develop
       <<: *build_image
