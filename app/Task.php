@@ -26,6 +26,7 @@ class Task extends Model
 
     protected $hidden = [
         'id',
+        'vkey_id',
         'created_at',
         'updated_at',
     ];

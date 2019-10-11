@@ -21,6 +21,7 @@ class Reward extends Model
         'description',
         'description_e',
         'image',
+        'redeemable',
         'quantity',
         'likelihood',
     ];

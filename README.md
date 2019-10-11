@@ -17,17 +17,11 @@ composer install
 cp .env.example .env
 ```
 
-+ 設定任務驗證碼
-TASK_VKEY=
-
-+ 設定管理密碼
++ 設定管理密碼 \
 ADMIN_KEY=
 
-+ 設定 QR Code 使用者帳號
-QRCODE_USER=
-
-+ 設定 QR Code 使用者密碼
-QRCODE_PASS=
++ QR Code 產生器網址 \
+/qrcode/{slug}
 
 + 修改資料庫相關參數
 ```

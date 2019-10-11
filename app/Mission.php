@@ -20,7 +20,6 @@ class Mission extends Model
         'name_e',
         'description',
         'description_e',
-        'image',
         'open',
         'point',
     ];

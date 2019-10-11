@@ -23,7 +23,6 @@ class MissionController extends Controller
             'name_e',
             'description',
             'description_e',
-            'image',
             'open',
             'point',
         ]));
