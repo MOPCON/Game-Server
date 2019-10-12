@@ -61,6 +61,7 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $task = Task::create($request->only([
+            'vkey_id',
             'name',
             'name_e',
             'description',
