@@ -20,6 +20,12 @@ cp .env.example .env
 + 設定管理密碼 \
 ADMIN_KEY=
 
++ 設定最後一道關卡的 uid \
+LAST_MISSION_UID=
+
++ 設定最後一項任務的 id \
+LAST_TASK_ID=
+
 + QR Code 產生器網址 \
 /qrcode/{slug}
 

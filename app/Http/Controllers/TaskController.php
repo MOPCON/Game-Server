@@ -21,26 +21,32 @@ class TaskController extends Controller
     public function getTask(string $missionUid)
     {
         $user = $this->guard()->user();
-
+        $last_mission_uid = env('LAST_MISSION_UID', '');
+        $last_task_id = env('LAST_TASK_ID', 0);
         $mission = Mission::where([['uid', $missionUid], ['open', 1]])->firstOrFail();
 
-        $scores = $user->scores()->get();
+        if ($missionUid == $last_mission_uid) {
+            $task = Task::findOrFail($last_task_id);
+        } else {
+            $scores = $user->scores()->get();
 
-        $existTask = $scores->where('mission_id', $mission->id);
-        if (! $existTask->isEmpty()) {
-            return $this->returnSuccess(
-                'Success.',
-                Task::find($existTask->first()->task_id)
-            );
+            $existTask = $scores->where('mission_id', $mission->id);
+            if (! $existTask->isEmpty()) {
+                return $this->returnSuccess(
+                    'Success.',
+                    Task::find($existTask->first()->task_id)
+                );
+            }
+
+            $attendTaskIds = $scores->map(function ($item) {
+                return $item->task_id;
+            });
+            $attendTaskIds->push($last_task_id);
+
+            $task = Task::whereNotIn('id', $attendTaskIds->all())
+                ->inRandomOrder()
+                ->first();
         }
-
-        $attendTaskIds = $scores->map(function ($item) {
-            return $item->task_id;
-        })->all();
-
-        $task = Task::whereNotIn('id', $attendTaskIds)
-            ->inRandomOrder()
-            ->first();
 
         Scoreboard::create([
             'user_id' => $user->id,
