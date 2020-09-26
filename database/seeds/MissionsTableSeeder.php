@@ -1,6 +1,7 @@
 <?php
 
 use App\Mission;
+use App\Task;
 use Illuminate\Database\Seeder;
 
 class MissionsTableSeeder extends Seeder
@@ -16,7 +17,7 @@ class MissionsTableSeeder extends Seeder
         $en_faker = Faker\Factory::create('en_US');
         $item_count = 0;
 
-        while ($item_count < 8) {
+        while ($item_count < 12) {
             $data = [
                 'name' => sprintf("關卡 %s", $item_count + 1),
                 'name_e' => sprintf("Mission %s", $item_count + 1),
@@ -25,8 +26,17 @@ class MissionsTableSeeder extends Seeder
                 'open' => 1,
             ];
 
-            Mission::create($data);
+            $mission = Mission::create($data);
 
+            $task_data = [
+                'name' => sprintf("任務 %s", $item_count + 1),
+                'name_e' => sprintf("Task %s", $item_count + 1),
+                'description' => $faker->realtext(20),
+                'description_e' => $en_faker->text,
+                'image' => $faker->imageUrl('640', '480', 'technics', true, 'Faker'),
+                'mission_uid' => $mission->uid,
+            ];
+            Task::create($task_data);
             $item_count++;
         }
     }
