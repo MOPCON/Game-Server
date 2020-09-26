@@ -16,6 +16,7 @@ class Task extends Model
      */
     protected $fillable = [
         'uid',
+        'mission',
         'vkey_id',
         'name',
         'name_e',
@@ -42,5 +43,15 @@ class Task extends Model
     public function KeyPool()
     {
         return $this->belongsTo('App\KeyPool', 'vkey_id', 'id');
+    }
+
+    public function mission()
+    {
+        return $this->belongsTo('App\Mission', 'mission_uid', 'uid');
+    }
+
+    public function scores()
+    {
+        return $this->hasMany('App\Scoreboard', 'id', 'task');
     }
 }
