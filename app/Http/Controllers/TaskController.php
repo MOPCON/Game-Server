@@ -62,14 +62,15 @@ class TaskController extends Controller
 
 
         return $this->returnSuccess('Success.', $output);
-        }
+    }
 
-        Scoreboard::create([
-            'user_id' => $user->id,
-            'mission_id' => $mission->id,
-            'task_id' => $task->id,
-        ]);
-
+    /**
+     * @param string $missionUid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTaskByMission(string $missionUid)
+    {
+        $task = Task::where('mission_uid', $missionUid)->firstOrFail();
         return $this->returnSuccess('Success.', $task);
     }
 
