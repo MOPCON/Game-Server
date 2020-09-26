@@ -31,7 +31,8 @@ $router->group(['middleware' => 'auth:api'], function ($router) {
     });
 
     $router->get('/me', 'AuthController@me');
-    $router->get('/getTask/{missionUid}', 'TaskController@getTask');
+    $router->get('/getTask', 'TaskController@getTask');
+    $router->get('/getTask/{missionUid}', 'TaskController@getTaskByMission');
     $router->get('/getReward', 'RewardController@getReward');
     $router->post('/verify/{vType}', 'VerifyController@verify');
     $router->get('/mySession', 'UserController@getMySession');

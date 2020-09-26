@@ -15,37 +15,53 @@ class TaskController extends Controller
     use AuthTrait;
 
     /**
-     * @param string $missionUid
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTask(string $missionUid)
+    public function getTask()
     {
         $user = $this->guard()->user();
-        $last_mission_uid = env('LAST_MISSION_UID', '');
-        $last_task_id = env('LAST_TASK_ID', 0);
-        $mission = Mission::where([['uid', $missionUid], ['open', 1]])->firstOrFail();
+        $scoreBoard = Scoreboard::where('user_id', $user->id)
+            ->with(array('mission' => function ($query) {
+                $query->where('open', 1);
+            }))->get();
+        if ($scoreBoard->isEmpty()) {
+            $insertTask = [];
+            Mission::where('open', 1)
+                ->with('task')->orderby('order')
+                ->each(function ($mission) use ($user, &$insertTask) {
+                    $insertTask[] = [
+                        'user_id' => $user->id,
+                        'mission_id' => $mission->id,
+                        'task_id' => $mission->task->id,
+                    ];
+                });
+            Scoreboard::insert($insertTask);
+            $scoreBoard->fresh();
+        }
+        $missions = [];
+        $scoreBoard->each(function ($scoreData) use (&$missions) {
+            $missions[] = [
+                'uid' => $scoreData->mission->uid,
+                'name' => $scoreData->mission->name,
+                'name_e' => $scoreData->mission->name_e,
+                'description' => $scoreData->mission->description,
+                'description_e' => $scoreData->mission->description_e,
+                'order' => $scoreData->mission->order,
+                'passed' => $scoreData->pass === 1,
+            ];
+        });
 
-        if ($missionUid == $last_mission_uid) {
-            $task = Task::findOrFail($last_task_id);
-        } else {
-            $scores = $user->scores()->get();
+        $passCount = $scoreBoard->sum('pass');
+        $taskCount = $scoreBoard->count();
 
-            $existTask = $scores->where('mission_id', $mission->id);
-            if (! $existTask->isEmpty()) {
-                return $this->returnSuccess(
-                    'Success.',
-                    Task::find($existTask->first()->task_id)
-                );
-            }
+        $output = [
+            'missions' => $missions,
+            'passed' => $passCount,
+            'total' => $taskCount,
+        ];
 
-            $attendTaskIds = $scores->map(function ($item) {
-                return $item->task_id;
-            });
-            $attendTaskIds->push($last_task_id);
 
-            $task = Task::whereNotIn('id', $attendTaskIds->all())
-                ->inRandomOrder()
-                ->first();
+        return $this->returnSuccess('Success.', $output);
         }
 
         Scoreboard::create([
