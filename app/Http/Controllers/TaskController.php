@@ -7,6 +7,7 @@ use App\Task;
 use App\Scoreboard;
 use App\Http\Traits\ApiTrait;
 use App\Http\Traits\AuthTrait;
+use App\User;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -54,10 +55,16 @@ class TaskController extends Controller
         $passCount = $scoreBoard->sum('pass');
         $taskCount = $scoreBoard->count();
 
+        $rewardInfo = [
+            'count' => intval($passCount / 6),
+            'exchanged' => collect($user->achievement[User::WON_REWARD])->count(),
+        ];
+
         $output = [
             'missions' => $missions,
             'passed' => $passCount,
             'total' => $taskCount,
+            'rewardInfo' => $rewardInfo,
         ];
 
 
