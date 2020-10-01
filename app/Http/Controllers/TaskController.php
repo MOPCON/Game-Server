@@ -37,7 +37,11 @@ class TaskController extends Controller
                     ];
                 });
             Scoreboard::insert($insertTask);
-            $scoreBoard->fresh();
+
+            $scoreBoard = Scoreboard::where('user_id', $user->id)
+                ->with(array('mission' => function ($query) {
+                    $query->where('open', 1);
+                }))->get();
         }
         $missions = [];
         $scoreBoard->each(function ($scoreData) use (&$missions) {
