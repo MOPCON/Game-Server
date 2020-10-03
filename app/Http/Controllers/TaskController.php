@@ -21,28 +21,14 @@ class TaskController extends Controller
     public function getTask()
     {
         $user = $this->guard()->user();
-        $scoreBoard = Scoreboard::where('user_id', $user->id)
-            ->with(array('mission' => function ($query) {
-                $query->where('open', 1);
-            }))->get();
-        if ($scoreBoard->isEmpty()) {
-            $insertTask = [];
-            Mission::where('open', 1)
-                ->with('task')->orderby('order')
-                ->each(function ($mission) use ($user, &$insertTask) {
-                    $insertTask[] = [
-                        'user_id' => $user->id,
-                        'mission_id' => $mission->id,
-                        'task_id' => $mission->task->id,
-                    ];
-                });
-            Scoreboard::insert($insertTask);
+        $scores = new Scoreboard();
+        $scoreBoard = $scores->getUserScores($user);
 
-            $scoreBoard = Scoreboard::where('user_id', $user->id)
-                ->with(array('mission' => function ($query) {
-                    $query->where('open', 1);
-                }))->get();
+        if ($scoreBoard->isEmpty()) {
+            $scores->generateScores($user);
+            $scoreBoard = $scores->getUserScores($user);
         }
+
         $missions = [];
         $scoreBoard->each(function ($scoreData) use (&$missions) {
             $missions[] = [
