@@ -89,28 +89,20 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function getMissionListAttribute()
     {
-        $missions = Mission::all();
-        $completed_task = collect($this->achievement[self::COMPLETED_TASK])
-            ->mapWithKeys(function ($item) {
-                return [$item['mission_id'] => $item['task_id']];
-            })->all();
+        if ($this->scores->isEmpty()) {
+            $scores = new Scoreboard();
+            $scores->generateScores($this);
+            $this->refresh();
+        }
 
-        $tasks = Task::findOrFail(array_values($completed_task))
-            ->mapWithKeys(function ($item) {
-                return [$item->id => $item];
-            })->toArray();
-
-        return $missions->map(function ($item) use ($tasks, $completed_task) {
-            if (array_key_exists($item->id, $completed_task)) {
-                $item->pass = 1;
-                $item->task = $tasks[$completed_task[$item->id]];
-            } else {
-                $item->pass = 0;
-                $item->task = null;
-            }
-
-            return $item;
+        $scoresBoard = $this->scores->mapWithKeys(function ($score) {
+            return [$score['mission_id'] => $score['pass']];
         });
+        return Mission::with('task')->get()
+            ->map(function ($mission) use ($scoresBoard) {
+                $mission->pass = $scoresBoard[$mission['id']];
+                return $mission;
+            });
     }
 
     public function getRewardListAttribute()

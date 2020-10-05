@@ -21,7 +21,9 @@ class RewardController extends Controller
         $user = $this->guard()->user();
         $achievement = $user->achievement;
         $wonReward = collect($achievement[User::WON_REWARD]);
-        if ($wonReward->count() > 0) {
+        $rewardNum = intval($user->scores->sum('pass') / 6);
+        $rewardCanGet = $rewardNum - $wonReward->count();
+        if ($wonReward->count() > 1 || $rewardCanGet < 1) {
             return $this->returnSuccess('No More Reward.');
         }
 

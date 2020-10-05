@@ -37,4 +37,14 @@ class Mission extends Model
             $model->uid = Str::uuid();
         });
     }
+
+    public function task()
+    {
+        return $this->hasOne('App\Task', 'mission_uid', 'uid');
+    }
+
+    public function scores()
+    {
+        return $this->hasMany('App\Scoreboard', 'id', 'mission');
+    }
 }
