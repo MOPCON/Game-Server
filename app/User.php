@@ -107,23 +107,17 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function getRewardListAttribute()
     {
-        $rewards = Reward::all();
-        $won_reward = collect($this->achievement[self::WON_REWARD])
-            ->mapWithKeys(function ($item) {
-                return [$item['reward_id'] => $item['redeemed']];
-            })->all();
-
-        return $rewards->map(function ($item) use ($won_reward) {
-            if (array_key_exists($item->id, $won_reward)) {
-                $item->redeemed = (int) $won_reward[$item->id];
-                $item->has_won = 1;
-            } else {
-                $item->redeemed = 0;
-                $item->has_won = 0;
-            }
-
-            return $item;
+        $rewards = Reward::all()->mapWithKeys(function ($reward) {
+            return [$reward->id => $reward];
         });
+        return collect($this->achievement[self::WON_REWARD])
+            ->map(function ($item) use ($rewards) {
+                $reward_item = $rewards[$item['reward_id']];
+                $reward_item->redeemed = (int) $item['redeemed'];
+                $reward_item->has_won = 1;
+
+                return $reward_item;
+            })->all();
     }
 
     public function getWonPointAttribute()
