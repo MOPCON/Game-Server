@@ -75,12 +75,27 @@ class VerifyController extends Controller
                 $rewardCollection = collect($achievement[User::WON_REWARD]);
                 $newCollection = null;
 
-                if ($rewardCollection->where('reward_id', $reward_id)->isNotEmpty()) {
+                $exchage_reward = $rewardCollection->where('reward_id', $reward_id)
+                    ->firstWhere('redeemed', false);
+                
+                if (!empty($exchage_reward)) {
+                    $exchanged = false;
                     $newCollection = $rewardCollection->map(
-                        function ($item) use ($reward_id) {
-                            if ($item['reward_id'] == $reward_id) {
-                                $item['redeemed'] = true;
+                        function ($item) use ($reward_id, &$exchanged) {
+                            if ($exchanged) {
+                                return $item;
                             }
+
+                            if ($item['reward_id'] !== $reward_id) {
+                                return $item;
+                            }
+
+                            if ($item['redeemed'] === true) {
+                                return $item;
+                            }
+
+                            $exchanged = true;
+                            $item['redeemed'] = true;
 
                             return $item;
                         }
@@ -94,7 +109,6 @@ class VerifyController extends Controller
                 }
 
                 break;
-
         }
 
         $user->achievement = $achievement;
