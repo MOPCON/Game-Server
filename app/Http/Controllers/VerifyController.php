@@ -59,7 +59,7 @@ class VerifyController extends Controller
                             $achievement[User::WON_POINT] += $score->point;
                         }
                     } else {
-                        return $this->return400Response();
+                        return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
                     }
                 }
 
@@ -68,25 +68,40 @@ class VerifyController extends Controller
             case KeyPool::TYPE_REWARD:
                 $reward = Reward::where('uid', $uid)->firstOrFail();
                 if (! $reward->redeemable) {
-                    return $this->return400Response();
+                    return $this->return400Response("獎品已兌換完畢囉。");
                 }
 
                 $reward_id = $reward->id;
                 $rewardCollection = collect($achievement[User::WON_REWARD]);
                 $newCollection = null;
 
-                if ($rewardCollection->where('reward_id', $reward_id)->isNotEmpty()) {
+                $exchage_reward = $rewardCollection->where('reward_id', $reward_id)
+                    ->firstWhere('redeemed', false);
+                
+                if (!empty($exchage_reward)) {
+                    $exchanged = false;
                     $newCollection = $rewardCollection->map(
-                        function ($item) use ($reward_id) {
-                            if ($item['reward_id'] == $reward_id) {
-                                $item['redeemed'] = true;
+                        function ($item) use ($reward_id, &$exchanged) {
+                            if ($exchanged) {
+                                return $item;
                             }
+
+                            if ($item['reward_id'] !== $reward_id) {
+                                return $item;
+                            }
+
+                            if ($item['redeemed'] === true) {
+                                return $item;
+                            }
+
+                            $exchanged = true;
+                            $item['redeemed'] = true;
 
                             return $item;
                         }
                     );
                 } else {
-                    return $this->return400Response();
+                    return $this->return400Response('驗證碼輸入錯誤，請檢查後重新輸入。');
                 }
 
                 if ($newCollection) {
@@ -94,7 +109,6 @@ class VerifyController extends Controller
                 }
 
                 break;
-
         }
 
         $user->achievement = $achievement;
