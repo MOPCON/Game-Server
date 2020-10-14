@@ -59,7 +59,7 @@ class VerifyController extends Controller
                             $achievement[User::WON_POINT] += $score->point;
                         }
                     } else {
-                        return $this->return400Response();
+                        return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
                     }
                 }
 
@@ -68,7 +68,7 @@ class VerifyController extends Controller
             case KeyPool::TYPE_REWARD:
                 $reward = Reward::where('uid', $uid)->firstOrFail();
                 if (! $reward->redeemable) {
-                    return $this->return400Response();
+                    return $this->return400Response("獎品已兌換完畢囉。");
                 }
 
                 $reward_id = $reward->id;
@@ -86,7 +86,7 @@ class VerifyController extends Controller
                         }
                     );
                 } else {
-                    return $this->return400Response();
+                    return $this->return400Response('驗證碼輸入錯誤，請檢查後重新輸入。');
                 }
 
                 if ($newCollection) {

@@ -24,7 +24,7 @@ class RewardController extends Controller
         $rewardNum = intval($user->scores->sum('pass') / 6);
         $rewardCanGet = $rewardNum - $wonReward->count();
         if ($wonReward->count() > 1 || $rewardCanGet < 1) {
-            return $this->returnSuccess('No More Reward.');
+            return $this->returnSuccess('獎品已被兌換一空！');
         }
 
         $reward = Reward::orderByRaw('-LOG(1.0 - RAND()) / likelihood')
