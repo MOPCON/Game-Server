@@ -16,6 +16,7 @@ class Reward extends Model
      */
     protected $fillable = [
         'uid',
+        'group',
         'name',
         'name_e',
         'description',
@@ -28,6 +29,7 @@ class Reward extends Model
 
     protected $hidden = [
         'id',
+        'group',
         'quantity',
         'likelihood',
         'created_at',

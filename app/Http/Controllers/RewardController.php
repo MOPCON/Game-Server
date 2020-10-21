@@ -27,7 +27,9 @@ class RewardController extends Controller
             return $this->returnSuccess('獎品已被兌換一空！');
         }
 
-        $reward = Reward::orderByRaw('-LOG(1.0 - RAND()) / likelihood')
+        $group = $wonReward->count() + 1;
+        $reward = Reward::where('group', $group)
+            ->orderByRaw('-LOG(1.0 - RAND()) / likelihood')
             ->where([
                 ['likelihood', '>', 0],
                 ['quantity', '>', 0],
@@ -54,16 +56,18 @@ class RewardController extends Controller
     }
 
     /**
+     * @param  Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getRewardTest()
+    public function getRewardTest(Request $request)
     {
+        $group = $request->get('group', 1);
         $reward = Reward::orderByRaw('-LOG(1.0 - RAND()) / likelihood')
             ->where([
+                ['group', '=', $group],
                 ['likelihood', '>', 0],
                 ['quantity', '>', 0],
             ])->firstOrFail();
-
         if ($reward) {
             return $this->returnSuccess('Success.', $reward);
         } else {
@@ -80,6 +84,7 @@ class RewardController extends Controller
     public function store(Request $request)
     {
         $reward = Reward::create($request->only([
+            'group',
             'name',
             'name_e',
             'description',
