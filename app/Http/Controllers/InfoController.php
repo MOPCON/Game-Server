@@ -12,9 +12,9 @@ class InfoController extends Controller
 
     const GAME_INFO = [
         'image' => 'https://lorempixel.com/640/480/technics/Faker/?66666',
-        'title' => '歡迎加入',
+        'title' => '歡迎登鑑',
         'title_e' => 'Welcome',
-        'description' => '歡迎來到Mopcon闖關大進擊，透過達成各關卡任務，將有神秘大獎等著你!',
+        'description' => '終於等到你了！歡迎加入 Mo 孃的宇宙冒險之旅。一起探索闖關，找尋我們的 One Piece 吧！',
         'description_e' => 'Welcome to MOPCON Game Field.',
     ];
 
