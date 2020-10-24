@@ -23,11 +23,11 @@ class VerifyController extends Controller
     public function verify(Request $request, string $vType)
     {
         if (! $request->filled(['uid', 'vKey'])) {
-            return $this->return400Response();
+            return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
         }
 
         if (! $this->checkKey($request->input('uid'), $request->input('vKey'), $vType)) {
-            return $this->return400Response();
+            return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
         }
 
         $uid = $request->input('uid');
@@ -77,7 +77,7 @@ class VerifyController extends Controller
 
                 $exchage_reward = $rewardCollection->where('reward_id', $reward_id)
                     ->firstWhere('redeemed', false);
-                
+
                 if (!empty($exchage_reward)) {
                     $exchanged = false;
                     $newCollection = $rewardCollection->map(
