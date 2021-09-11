@@ -28,7 +28,10 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-        'uid', 'email',
+        'uid',
+        'email',
+        'password',
+        'nickname',
     ];
 
     /**
@@ -134,5 +137,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function scores()
     {
         return $this->hasMany('App\Scoreboard');
+    }
+
+    /**
+     * get ticket for user
+     */
+    public function ticket()
+    {
+        return $this->belongsTo('App\Ticket');
     }
 }

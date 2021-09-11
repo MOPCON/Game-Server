@@ -14,10 +14,23 @@
 
 - Data Params
 
-    **Required:**
+    Paramters depends on environment variable `REGISTER_MODE`.
 
-    - uid=[string]
-    - email=[string]
+    - When `REGISTER_MODE` = 'app'
+    
+        **Required:**
+
+        - uid=[string]
+        - email=[string]
+
+    - When `REGISTER_MODE` = 'web'
+    
+        **Required:**
+
+        - email=[string]
+        - nickname=[string]
+        - password=[string]
+        - ticket_number=[string]
 
 - Success Response
 
