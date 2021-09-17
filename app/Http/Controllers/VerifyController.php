@@ -23,11 +23,11 @@ class VerifyController extends Controller
     public function verify(Request $request, string $vType)
     {
         if (! $request->filled(['uid', 'vKey'])) {
-            return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
+            return $this->return400Response($this->returnWrongAnswerMessage());
         }
 
         if (! $this->checkKey($request->input('uid'), $request->input('vKey'), $vType)) {
-            return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
+            return $this->return400Response($this->returnWrongAnswerMessage());
         }
 
         $uid = $request->input('uid');
@@ -59,7 +59,7 @@ class VerifyController extends Controller
                             $achievement[User::WON_POINT] += $score->point;
                         }
                     } else {
-                        return $this->return400Response('非本關卡正確 QRcode，請重新確認。');
+                        return $this->return400Response('計分資料有誤，無法取得該題資料。');
                     }
                 }
 
@@ -132,15 +132,7 @@ class VerifyController extends Controller
 
         switch ($type) {
             case KeyPool::TYPE_TASK:
-                if (strpos($key, '+') !== false) {
-                    $tmp = explode('+', $key);
-                    if ($tmp[1] > strtotime('-60 seconds')) {
-                        $task = Task::where('uid', $uid)->firstOrFail();
-                        $vkey = $task->KeyPool->key;
-                        $result = md5($vkey . '+' . $tmp[1]) == $tmp[0];
-                    }
-                }
-
+                $result = $this->checkTaskKey($uid, $key);
                 break;
             case KeyPool::TYPE_REWARD:
                 $result = KeyPool::where([
@@ -151,5 +143,50 @@ class VerifyController extends Controller
         }
 
         return $result;
+    }
+
+
+    /**
+     * @param string $uid
+     * @param string $key
+     * @return boolean
+     */
+    private function checkTaskKey(string $uid, string $key): bool {
+
+        $result = false;
+
+        $input_type = env('ANSWER_INPUT_TYPE', 'qrcode');
+
+        $check_timestamp = ($input_type == 'qrcode');
+
+        $task = Task::where('uid', $uid)->firstOrFail();
+        $vkey = $task->KeyPool->key;
+
+        if ($check_timestamp) {
+            if (strpos($key, '+') !== false) {
+                $tmp = explode('+', $key);
+                if ($tmp[1] > strtotime('-60 seconds')) {
+                    $result = md5($vkey . '+' . $tmp[1]) == $tmp[0];
+                }
+            }
+        } else {
+            $result = ($key == $vkey);
+        }
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
+    private function returnWrongAnswerMessage(): string {
+
+        $input_type = env('ANSWER_INPUT_TYPE', 'qrcode');
+
+        if ($input_type == 'qrcode') {
+            return '非本關卡正確 QRcode，請重新確認。';
+        } else {
+            return '你的答案錯誤，再檢查一下！';
+        }
+
     }
 }
