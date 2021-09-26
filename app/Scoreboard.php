@@ -31,11 +31,13 @@ class Scoreboard extends Model
         Mission::where('open', 1)
             ->with('task')->orderby('order')
             ->each(function ($mission) use ($user, &$insertTask) {
-                $insertTask[] = [
-                    'user_id' => $user->id,
-                    'mission_id' => $mission->id,
-                    'task_id' => $mission->task->id,
-                ];
+                foreach ($mission->task as $task) {
+                    $insertTask[] = [
+                        'user_id' => $user->id,
+                        'mission_id' => $mission->id,
+                        'task_id' => $task->id,
+                    ];
+                }
             });
         self::insert($insertTask);
     }

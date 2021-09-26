@@ -6,6 +6,7 @@ use App\User;
 use App\Task;
 use App\Reward;
 use App\KeyPool;
+use App\MissionFlow;
 use App\Http\Traits\ApiTrait;
 use App\Http\Traits\AuthTrait;
 use Illuminate\Http\Request;
@@ -36,35 +37,7 @@ class VerifyController extends Controller
 
         switch ($vType) {
             case KeyPool::TYPE_TASK:
-                $task = Task::where('uid', $uid)->firstOrFail();
-                $task_id = $task->id;
-                $taskCollection = collect($achievement[User::COMPLETED_TASK]);
-                if ($taskCollection->where(['task_id', $task_id])->isEmpty()) {
-                    $score = $user
-                        ->scores()
-                        ->get()
-                        ->firstWhere('task_id', $task->id);
-                    if ($score) {
-                        if ($score->pass == 0) {
-                            $score->pass = 1;
-                            $score->save();
-
-                            array_push(
-                                $achievement[User::COMPLETED_TASK],
-                                [
-                                    'mission_id' => $score->mission_id,
-                                    'task_id' => $score->task_id,
-                                ]
-                            );
-                            $achievement[User::WON_POINT] += $score->point;
-                        }
-                    } else {
-                        return $this->return400Response('計分資料有誤，無法取得該題資料。');
-                    }
-                }
-
-                break;
-
+                return $this->handleTaskProcess($uid, $user, $achievement);
             case KeyPool::TYPE_REWARD:
                 $reward = Reward::where('uid', $uid)->firstOrFail();
                 if (! $reward->redeemable) {
@@ -108,12 +81,9 @@ class VerifyController extends Controller
                     $achievement[User::WON_REWARD] = $newCollection->all();
                 }
 
-                break;
-        }
+                $this->saveAchievement($user, $achievement);
 
-        $user->achievement = $achievement;
-        if ($user->isDirty('achievement')) {
-            $user->save();
+                break;
         }
 
         return $this->returnSuccess('Success.');
@@ -189,4 +159,75 @@ class VerifyController extends Controller
         }
 
     }
+
+    /**
+     * @param string $uid
+     * @param User $user
+     * @param array $achievement
+     */
+    private function handleTaskProcess(string $uid, User $user, &$achievement) {
+
+        $enable_flow = env('ENABLE_FLOW_CTRL', false);
+
+        $task = Task::where('uid', $uid)->firstOrFail();
+
+        if ($enable_flow && ! $this->isLegalPathToAnswer($user->getCurrentMissionAttribute(), $task)) {
+            return $this->return400Response('前置任務尚未完成，請先完成後再來挑戰本關。');
+        }
+
+        $task_id = $task->id;
+        $taskCollection = collect($achievement[User::COMPLETED_TASK]);
+        if ($taskCollection->where(['task_id', $task_id])->isEmpty()) {
+            $score = $user
+                ->scores()
+                ->get()
+                ->firstWhere('task_id', $task_id);
+            if ($score) {
+                if ($score->pass == 0) {
+                    $score->pass = 1;
+                    $score->save();
+
+                    array_push(
+                        $achievement[User::COMPLETED_TASK],
+                        [
+                            'mission_id' => $score->mission_id,
+                            'task_id' => $score->task_id,
+                        ]
+                    );
+
+                    $flow = MissionFlow::where('mission_id', $score->mission_id)->where('task_id', $score->task_id)->first();
+                    $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
+                    $achievement[User::WON_POINT] += $score->point;
+                }
+            } else {
+                return $this->return400Response('計分資料有誤，無法取得該題資料。');
+            }
+
+        }
+        $this->saveAchievement($user, $achievement);
+        return $this->returnSuccess('Success.');
+
+    }
+
+    /**
+     * @param int $mission_id
+     * @param Task $task
+     * @return boolean
+     */
+    private function isLegalPathToAnswer(int $mission_id, Task $task): bool {
+        $flow = MissionFlow::where('mission_id', $mission_id)->where('task_id', $task->id)->first();
+        return (isset($flow) && $flow->mission_id == $task->mission->id);
+    }
+
+    /**
+     * @param User $user
+     * @param array $achievement
+     */
+    private function saveAchievement(User $user, array $achievement) {
+        $user->achievement = $achievement;
+        if ($user->isDirty('achievement')) {
+            $user->save();
+        }
+    }
+
 }
