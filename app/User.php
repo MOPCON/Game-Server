@@ -16,6 +16,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 {
     use Authenticatable, Authorizable;
 
+    const CURRENT_MISSION = 'current_mission';
     const COMPLETED_TASK = 'completed_task';
     const WON_REWARD = 'won_reward';
     const WON_POINT = 'won_point';
@@ -50,6 +51,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     ];
 
     protected $appends = [
+        self::CURRENT_MISSION,
         'mission_list',
         'reward_list',
         self::WON_POINT,
@@ -65,6 +67,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         parent::boot();
         self::creating(function ($model) {
             $model->achievement = [
+                self::CURRENT_MISSION => 1,
                 self::COMPLETED_TASK => [],
                 self::WON_REWARD => [],
                 self::WON_POINT => 0,
@@ -124,6 +127,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
                 $output[] = $reward_item->toArray();
             });
         return $output;
+    }
+
+    public function getCurrentMissionAttribute()
+    {
+        return $this->achievement[self::CURRENT_MISSION];
     }
 
     public function getWonPointAttribute()

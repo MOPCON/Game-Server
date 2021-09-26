@@ -32,8 +32,7 @@ class AuthController extends Controller
                 $user = $this->registerWithUserInfo($request);
                 break;
             default:
-                $this->returnApiResponse('內部設定錯誤', [], false, 500);
-                break;
+                return $this->returnApiResponse('內部設定錯誤', [], false, 500);
         }
 
         $credentials = [

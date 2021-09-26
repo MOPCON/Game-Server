@@ -40,11 +40,16 @@ class Mission extends Model
 
     public function task()
     {
-        return $this->hasOne('App\Task', 'mission_uid', 'uid');
+        return $this->hasMany('App\Task', 'mission_uid', 'uid');
     }
 
     public function scores()
     {
         return $this->hasMany('App\Scoreboard', 'id', 'mission');
+    }
+
+    public function flow()
+    {
+        return $this->hasMany('App\MissionFlow', 'id', 'mission_id');
     }
 }

@@ -54,4 +54,9 @@ class Task extends Model
     {
         return $this->hasMany('App\Scoreboard', 'id', 'task');
     }
+
+    public function flow()
+    {
+        return $this->hasMany('App\MissionFlow', 'id', 'task_id');
+    }
 }
