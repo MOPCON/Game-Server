@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KeyPool extends Model
 {
-    const TYPE_TASK = 'task';
+    const TYPE_QUESTION = 'question';
     const TYPE_REWARD = 'reward';
     protected $table = 'key_pool';
 
@@ -24,8 +24,8 @@ class KeyPool extends Model
         'passwd',
     ];
 
-    public function tasks()
+    public function questions()
     {
-        return $this->hasMany('App\Task', 'vkey_id', 'id');
+        return $this->hasMany('App\Question', 'vkey_id', 'id');
     }
 }

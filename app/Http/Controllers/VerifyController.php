@@ -6,6 +6,7 @@ use App\User;
 use App\Task;
 use App\Reward;
 use App\KeyPool;
+use App\Question;
 use App\MissionFlow;
 use App\Http\Traits\ApiTrait;
 use App\Http\Traits\AuthTrait;
@@ -16,6 +17,7 @@ class VerifyController extends Controller
     use ApiTrait;
     use AuthTrait;
 
+    // TODO: Verify 必須整個改寫才有辦法接多個答案進來
     /**
      * @param Request $request
      * @param string $vType
@@ -36,8 +38,8 @@ class VerifyController extends Controller
         $achievement = $user->achievement;
 
         switch ($vType) {
-            case KeyPool::TYPE_TASK:
-                return $this->handleTaskProcess($uid, $user, $achievement);
+            case KeyPool::TYPE_QUESTION:
+                return $this->handleQuestionProcess($uid, $user, $achievement);
             case KeyPool::TYPE_REWARD:
                 $reward = Reward::where('uid', $uid)->firstOrFail();
                 if (! $reward->redeemable) {
@@ -101,8 +103,8 @@ class VerifyController extends Controller
         $result = false;
 
         switch ($type) {
-            case KeyPool::TYPE_TASK:
-                $result = $this->checkTaskKey($uid, $key);
+            case KeyPool::TYPE_QUESTION:
+                $result = $this->checkQuestionKey($uid, $key);
                 break;
             case KeyPool::TYPE_REWARD:
                 $result = KeyPool::where([
@@ -121,7 +123,7 @@ class VerifyController extends Controller
      * @param string $key
      * @return boolean
      */
-    private function checkTaskKey(string $uid, string $key): bool {
+    private function checkQuestionKey(string $uid, string $key): bool {
 
         $result = false;
 
@@ -129,8 +131,8 @@ class VerifyController extends Controller
 
         $check_timestamp = ($input_type == 'qrcode');
 
-        $task = Task::where('uid', $uid)->firstOrFail();
-        $vkey = $task->KeyPool->key;
+        $question = Question::where('uid', $uid)->firstOrFail();
+        $vkey = $question->KeyPool->key;
 
         if ($check_timestamp) {
             if (strpos($key, '+') !== false) {
@@ -165,11 +167,13 @@ class VerifyController extends Controller
      * @param User $user
      * @param array $achievement
      */
-    private function handleTaskProcess(string $uid, User $user, &$achievement) {
+    private function handleQuestionProcess(string $uid, User $user, &$achievement) {
 
         $enable_flow = env('ENABLE_FLOW_CTRL', false);
 
-        $task = Task::where('uid', $uid)->firstOrFail();
+        $question = Question::where('uid', $uid)->firstOrFail();
+
+        $task = $question->task;
 
         if ($enable_flow && ! $this->isLegalPathToAnswer($user->getCurrentMissionAttribute(), $task)) {
             return $this->return400Response('前置任務尚未完成，請先完成後再來挑戰本關。');

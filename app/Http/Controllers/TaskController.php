@@ -28,7 +28,7 @@ class TaskController extends Controller
             $scores->generateScores($user);
             $scoreBoard = $scores->getUserScores($user);
         }
-
+        // TODO: 過關的判斷要調整
         $missions = [];
         $scoreBoard->each(function ($scoreData) use (&$missions) {
             $missions[] = [
@@ -86,7 +86,6 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $task = Task::create($request->only([
-            'vkey_id',
             'name',
             'name_e',
             'description',

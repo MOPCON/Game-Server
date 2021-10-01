@@ -18,7 +18,7 @@ class KeyPoolTableSeeder extends Seeder
         while ($item_count < 3) {
             $data = [
                 'key' => $faker->word,
-                'type' => KeyPool::TYPE_TASK,
+                'type' => KeyPool::TYPE_QUESTION,
                 'slug' => $faker->word,
                 'account' => $faker->word,
                 'passwd' => $faker->word,

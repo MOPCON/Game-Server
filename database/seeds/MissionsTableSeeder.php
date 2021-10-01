@@ -2,6 +2,7 @@
 
 use App\Mission;
 use App\MissionFlow;
+use App\Question;
 use App\Task;
 use Illuminate\Database\Seeder;
 
@@ -40,6 +41,16 @@ class MissionsTableSeeder extends Seeder
             ];
 
             $task = Task::create($task_data);
+
+            $question_data = [
+                'name' => sprintf("題目 %s", $item_count + 1),
+                'name_e' => sprintf("Question %s", $item_count + 1),
+                'description' => $faker->realtext(20),
+                'description_e' => $en_faker->text,
+                'task_id' => $task->id,
+            ];
+
+            Question::create($question_data);
 
             if ($item_count + 1 < $fake_data_total) {
                 $flow_data = [
