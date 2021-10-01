@@ -67,8 +67,13 @@ class TaskController extends Controller
      */
     public function getTaskByMission(string $missionUid)
     {
-        $task = Task::where('mission_uid', $missionUid)->firstOrFail();
-        return $this->returnSuccess('Success.', $task);
+        $tasks = Task::where('mission_uid', $missionUid)->get();
+
+        if ($tasks->isEmpty()) {
+            return $this->return404Response();
+        }
+
+        return $this->returnSuccess('Success.', $tasks);
     }
 
 

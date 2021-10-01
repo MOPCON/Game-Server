@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Scoreboard extends Model
@@ -51,7 +52,10 @@ class Scoreboard extends Model
         return self::where('user_id', $user->id)
             ->with(array('mission' => function ($query) {
                 $query->where('open', 1);
-            }))->get();
+            }))
+            ->groupBy('mission_id')
+            ->select('mission_id', DB::raw('max(pass) as pass'))
+            ->get();
     }
 
     public function mission()
