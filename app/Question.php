@@ -5,9 +5,9 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-class Task extends Model
+class Question extends Model
 {
-    protected $table = 'tasks';
+    protected $table = 'questions';
 
     /**
      * The attributes that are mass assignable.
@@ -16,16 +16,17 @@ class Task extends Model
      */
     protected $fillable = [
         'uid',
-        'mission',
+        'task_id',
+        'vkey_id',
         'name',
         'name_e',
         'description',
         'description_e',
-        'image',
     ];
 
     protected $hidden = [
         'id',
+        'vkey_id',
         'created_at',
         'updated_at',
     ];
@@ -38,23 +39,19 @@ class Task extends Model
         });
     }
 
-    public function mission()
+    public function KeyPool()
     {
-        return $this->belongsTo('App\Mission', 'mission_uid', 'uid');
+        return $this->belongsTo('App\KeyPool', 'vkey_id', 'id');
     }
 
-    public function questions()
+    public function task()
     {
-        return $this->hasMany('App\Question', 'task_id', 'id');
+        return $this->belongsTo('App\Task', 'task_id', 'id');
     }
 
     public function scores()
     {
-        return $this->hasMany('App\Scoreboard', 'id', 'task');
+        return $this->hasMany('App\Scoreboard', 'id', 'question_id');
     }
 
-    public function flow()
-    {
-        return $this->hasMany('App\MissionFlow', 'id', 'task_id');
-    }
 }

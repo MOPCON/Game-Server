@@ -28,7 +28,6 @@ class TaskController extends Controller
             $scores->generateScores($user);
             $scoreBoard = $scores->getUserScores($user);
         }
-
         $missions = [];
         $scoreBoard->each(function ($scoreData) use (&$missions) {
             $missions[] = [
@@ -67,8 +66,15 @@ class TaskController extends Controller
      */
     public function getTaskByMission(string $missionUid)
     {
-        $task = Task::where('mission_uid', $missionUid)->firstOrFail();
-        return $this->returnSuccess('Success.', $task);
+        $tasks = Task::where('mission_uid', $missionUid)
+            ->with('questions')
+            ->get();
+
+        if ($tasks->isEmpty()) {
+            return $this->return404Response();
+        }
+
+        return $this->returnSuccess('Success.', $tasks);
     }
 
 
@@ -81,7 +87,6 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $task = Task::create($request->only([
-            'vkey_id',
             'name',
             'name_e',
             'description',

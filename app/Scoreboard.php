@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Scoreboard extends Model
@@ -32,11 +33,14 @@ class Scoreboard extends Model
             ->with('task')->orderby('order')
             ->each(function ($mission) use ($user, &$insertTask) {
                 foreach ($mission->task as $task) {
-                    $insertTask[] = [
-                        'user_id' => $user->id,
-                        'mission_id' => $mission->id,
-                        'task_id' => $task->id,
-                    ];
+                    foreach ($task->questions as $question) {
+                        $insertTask[] = [
+                            'user_id' => $user->id,
+                            'mission_id' => $mission->id,
+                            'task_id' => $task->id,
+                            'question_id' => $question->id,
+                        ];
+                    }
                 }
             });
         self::insert($insertTask);
@@ -48,10 +52,18 @@ class Scoreboard extends Model
      */
     public function getUserScores(User $user)
     {
-        return self::where('user_id', $user->id)
-            ->with(array('mission' => function ($query) {
-                $query->where('open', 1);
-            }))->get();
+        return self::where(function ($query) use ($user) {
+            $query = self::where('user_id', $user->id)
+                ->with(array('mission' => function ($mission_query) {
+                    $mission_query->where('open', 1);
+                }))
+                ->groupBy(['mission_id', 'task_id'])
+                ->select('mission_id', 'task_id', DB::raw('min(pass) as pass'));
+            })
+            ->groupBy('mission_id')
+            ->select('mission_id', DB::raw('min(pass) as pass'))
+            ->with('mission')
+            ->get();
     }
 
     public function mission()

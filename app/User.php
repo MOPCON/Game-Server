@@ -95,13 +95,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function getMissionListAttribute()
     {
+        $scores = new Scoreboard();
         if ($this->scores->isEmpty()) {
-            $scores = new Scoreboard();
             $scores->generateScores($this);
             $this->refresh();
         }
 
-        $scoresBoard = $this->scores->mapWithKeys(function ($score) {
+        $scoresBoard = $scores->getUserScores($this)->mapWithKeys(function ($score) {
             return [$score['mission_id'] => $score['pass']];
         });
         return Mission::with('task')->get()
