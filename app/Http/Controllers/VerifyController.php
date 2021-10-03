@@ -187,7 +187,7 @@ class VerifyController extends Controller
         if ($input_type == 'qrcode') {
             return '非本關卡正確 QRcode，請重新確認。';
         } else {
-            return '你的答案錯誤，再檢查一下！';
+            return '請檢查您的答案';
         }
 
     }
