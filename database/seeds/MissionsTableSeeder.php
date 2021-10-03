@@ -52,6 +52,18 @@ class MissionsTableSeeder extends Seeder
 
             Question::create($question_data);
 
+            if (rand(0,1) === 0) {
+                $question_data = [
+                    'name' => sprintf("題目 %s", 100 + $item_count + 1),
+                    'name_e' => sprintf("Question %s", 100 + $item_count + 1),
+                    'description' => $faker->realtext(20),
+                    'description_e' => $en_faker->text,
+                    'task_id' => $task->id,
+                ];
+
+                Question::create($question_data);
+            }
+
             if ($item_count + 1 < $fake_data_total) {
                 $flow_data = [
                     'mission_id' => $mission->id,
