@@ -52,12 +52,17 @@ class Scoreboard extends Model
      */
     public function getUserScores(User $user)
     {
-        return self::where('user_id', $user->id)
-            ->with(array('mission' => function ($query) {
-                $query->where('open', 1);
-            }))
+        return self::where(function ($query) use ($user) {
+            $query = self::where('user_id', $user->id)
+                ->with(array('mission' => function ($mission_query) {
+                    $mission_query->where('open', 1);
+                }))
+                ->groupBy(['mission_id', 'task_id'])
+                ->select('mission_id', 'task_id', DB::raw('min(pass) as pass'));
+            })
             ->groupBy('mission_id')
-            ->select('mission_id', DB::raw('max(pass) as pass'))
+            ->select('mission_id', DB::raw('min(pass) as pass'))
+            ->with('mission')
             ->get();
     }
 
