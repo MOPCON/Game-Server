@@ -204,6 +204,17 @@ class VerifyController extends Controller
         $question = Question::where('uid', $uid)->firstOrFail();
 
         $task = $question->task;
+        $task_id = $task->id;
+        $taskCollection = collect($achievement[User::COMPLETED_TASK]);
+
+        if (!$taskCollection->where('task_id', $task_id)->where('question_id', $question->id)->isEmpty()) {
+            // 已經過關 bypass
+            return [
+                'uid' => $uid,
+                'pass' => true,
+                'message' => null
+            ];
+        }
 
         if ($enable_flow && ! $this->isLegalPathToAnswer($user->getCurrentMissionAttribute(), $task)) {
             return [
@@ -213,53 +224,49 @@ class VerifyController extends Controller
             ];
         }
 
-        $task_id = $task->id;
-        $taskCollection = collect($achievement[User::COMPLETED_TASK]);
-        if ($taskCollection->where(['task_id', $task_id])->isEmpty()) {
-            $score = $user
-                ->scores()
-                ->get()
-                ->firstWhere('question_id', $question->id);
-            if ($score) {
-                if ($score->pass == 0) {
-                    $score->pass = 1;
-                    $score->save();
+        $score = $user
+            ->scores()
+            ->get()
+            ->firstWhere('question_id', $question->id);
+        if ($score) {
+            if ($score->pass == 0) {
+                $score->pass = 1;
+                $score->save();
 
-                    array_push(
-                        $achievement[User::COMPLETED_TASK],
-                        [
-                            'mission_id' => $score->mission_id,
-                            'task_id' => $score->task_id,
-                            'question_id' => $score->question_id
-                        ]
-                    );
+                array_push(
+                    $achievement[User::COMPLETED_TASK],
+                    [
+                        'mission_id' => $score->mission_id,
+                        'task_id' => $score->task_id,
+                        'question_id' => $score->question_id
+                    ]
+                );
 
-                    $task_not_pass = $user
-                        ->scores()
-                        ->get()
-                        ->where('task_id', $task_id)
-                        ->where('pass', false);
+                $task_not_pass = $user
+                    ->scores()
+                    ->get()
+                    ->where('task_id', $task_id)
+                    ->where('pass', false);
 
-                    if ($task_not_pass->isEmpty()) {
-                        // 全數通關後再往後移動
-                        $flow = MissionFlow::where('mission_id', $score->mission_id)
-                            ->where('task_id', $score->task_id)
-                            ->first();
-                        $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
-                    }
-
-
-                    $achievement[User::WON_POINT] += $score->point;
+                if ($task_not_pass->isEmpty()) {
+                    // 全數通關後再往後移動
+                    $flow = MissionFlow::where('mission_id', $score->mission_id)
+                        ->where('task_id', $score->task_id)
+                        ->first();
+                    $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
                 }
-            } else {
-                return [
-                    'uid' => $uid,
-                    'pass' => false,
-                    'message' => '計分資料有誤，無法取得該題資料。'
-                ];
-            }
 
+
+                $achievement[User::WON_POINT] += $score->point;
+            }
+        } else {
+            return [
+                'uid' => $uid,
+                'pass' => false,
+                'message' => '計分資料有誤，無法取得該題資料。'
+            ];
         }
+
         $this->saveAchievement($user, $achievement);
 
         return [
