@@ -17,7 +17,6 @@ class VerifyController extends Controller
     use ApiTrait;
     use AuthTrait;
 
-    // TODO: Verify 必須整個改寫才有辦法接多個答案進來
     /**
      * @param Request $request
      * @param string $vType
@@ -25,70 +24,101 @@ class VerifyController extends Controller
      */
     public function verify(Request $request, string $vType)
     {
-        if (! $request->filled(['uid', 'vKey'])) {
+        if (! $request->filled(['answer']) || ! is_array($request->input('answer'))) {
             return $this->return400Response($this->returnWrongAnswerMessage());
         }
 
-        if (! $this->checkKey($request->input('uid'), $request->input('vKey'), $vType)) {
-            return $this->return400Response($this->returnWrongAnswerMessage());
-        }
-
-        $uid = $request->input('uid');
         $user = $this->guard()->user();
         $achievement = $user->achievement;
 
-        switch ($vType) {
-            case KeyPool::TYPE_QUESTION:
-                return $this->handleQuestionProcess($uid, $user, $achievement);
-            case KeyPool::TYPE_REWARD:
-                $reward = Reward::where('uid', $uid)->firstOrFail();
-                if (! $reward->redeemable) {
-                    return $this->return400Response("獎品已兌換完畢囉。");
-                }
+        $answers = $request->input('answer');
 
-                $reward_id = $reward->id;
-                $rewardCollection = collect($achievement[User::WON_REWARD]);
-                $newCollection = null;
+        $valid_result = [];
 
-                $exchage_reward = $rewardCollection->where('reward_id', $reward_id)
-                    ->firstWhere('redeemed', false);
+        foreach($answers as $answer) {
+            $uid = $answer['uid'];
+            $vkey = $answer['vkey'];
 
-                if (!empty($exchage_reward)) {
-                    $exchanged = false;
-                    $newCollection = $rewardCollection->map(
-                        function ($item) use ($reward_id, &$exchanged) {
-                            if ($exchanged) {
+            if (! $this->checkKey($uid, $vkey, $vType)) {
+                array_push($valid_result, [
+                    'uid' => $uid,
+                    'pass' => false,
+                    'message' => $this->returnWrongAnswerMessage()
+                ]);
+                continue;
+            }
+
+            switch ($vType) {
+                case KeyPool::TYPE_QUESTION:
+                    array_push($valid_result, $this->handleQuestionProcess($uid, $user, $achievement));
+                    break;
+                case KeyPool::TYPE_REWARD:
+                    $reward = Reward::where('uid', $uid)->firstOrFail();
+                    if (! $reward->redeemable) {
+                        array_push($valid_result, [
+                            'uid' => $uid,
+                            'pass' => false,
+                            'message' => "獎品已兌換完畢囉。"
+                        ]);
+                        break;
+                    }
+
+                    $reward_id = $reward->id;
+                    $rewardCollection = collect($achievement[User::WON_REWARD]);
+                    $newCollection = null;
+
+                    $exchage_reward = $rewardCollection->where('reward_id', $reward_id)
+                        ->firstWhere('redeemed', false);
+
+                    if (!empty($exchage_reward)) {
+                        $exchanged = false;
+                        $newCollection = $rewardCollection->map(
+                            function ($item) use ($reward_id, &$exchanged) {
+                                if ($exchanged) {
+                                    return $item;
+                                }
+
+                                if ($item['reward_id'] !== $reward_id) {
+                                    return $item;
+                                }
+
+                                if ($item['redeemed'] === true) {
+                                    return $item;
+                                }
+
+                                $exchanged = true;
+                                $item['redeemed'] = true;
+
                                 return $item;
                             }
+                        );
+                    } else {
+                        array_push($valid_result, [
+                            'uid' => $uid,
+                            'pass' => false,
+                            'message' => "驗證碼輸入錯誤，請檢查後重新輸入。"
+                        ]);
+                    }
 
-                            if ($item['reward_id'] !== $reward_id) {
-                                return $item;
-                            }
+                    if ($newCollection) {
+                        $achievement[User::WON_REWARD] = $newCollection->all();
+                    }
 
-                            if ($item['redeemed'] === true) {
-                                return $item;
-                            }
+                    $this->saveAchievement($user, $achievement);
 
-                            $exchanged = true;
-                            $item['redeemed'] = true;
+                    array_push($valid_result, [
+                        'uid' => $uid,
+                        'pass' => true,
+                        'success' => null
+                    ]);
 
-                            return $item;
-                        }
-                    );
-                } else {
-                    return $this->return400Response('驗證碼輸入錯誤，請檢查後重新輸入。');
-                }
+                    break;
+            }
 
-                if ($newCollection) {
-                    $achievement[User::WON_REWARD] = $newCollection->all();
-                }
 
-                $this->saveAchievement($user, $achievement);
-
-                break;
         }
 
-        return $this->returnSuccess('Success.');
+        return $this->returnSuccess($valid_result);
     }
 
 
@@ -176,7 +206,11 @@ class VerifyController extends Controller
         $task = $question->task;
 
         if ($enable_flow && ! $this->isLegalPathToAnswer($user->getCurrentMissionAttribute(), $task)) {
-            return $this->return400Response('前置任務尚未完成，請先完成後再來挑戰本關。');
+            return [
+                'uid' => $uid,
+                'pass' => false,
+                'message' => '前置任務尚未完成，請先完成後再來挑戰本關。'
+            ];
         }
 
         $task_id = $task->id;
@@ -185,7 +219,7 @@ class VerifyController extends Controller
             $score = $user
                 ->scores()
                 ->get()
-                ->firstWhere('task_id', $task_id);
+                ->firstWhere('question_id', $question->id);
             if ($score) {
                 if ($score->pass == 0) {
                     $score->pass = 1;
@@ -196,21 +230,43 @@ class VerifyController extends Controller
                         [
                             'mission_id' => $score->mission_id,
                             'task_id' => $score->task_id,
+                            'question_id' => $score->question_id
                         ]
                     );
 
-                    $flow = MissionFlow::where('mission_id', $score->mission_id)->where('task_id', $score->task_id)->first();
-                    $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
+                    $task_not_pass = $user
+                        ->scores()
+                        ->get()
+                        ->where('task_id', $task_id)
+                        ->where('pass', false);
+
+                    if ($task_not_pass->isEmpty()) {
+                        // 全數通關後再往後移動
+                        $flow = MissionFlow::where('mission_id', $score->mission_id)
+                            ->where('task_id', $score->task_id)
+                            ->first();
+                        $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
+                    }
+
+
                     $achievement[User::WON_POINT] += $score->point;
                 }
             } else {
-                return $this->return400Response('計分資料有誤，無法取得該題資料。');
+                return [
+                    'uid' => $uid,
+                    'pass' => false,
+                    'message' => '計分資料有誤，無法取得該題資料。'
+                ];
             }
 
         }
         $this->saveAchievement($user, $achievement);
-        return $this->returnSuccess('Success.');
 
+        return [
+            'uid' => $uid,
+            'pass' => true,
+            'message' => null
+        ];
     }
 
     /**
