@@ -55,6 +55,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         'mission_list',
         'reward_list',
         self::WON_POINT,
+        'gift_mission',
     ];
 
     protected $casts = [
@@ -137,6 +138,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function getWonPointAttribute()
     {
         return $this->achievement[self::WON_POINT];
+    }
+
+    public function getGiftMissionAttribute()
+    {
+        return env('GIFT_MISSION_UID');
     }
 
     /**
