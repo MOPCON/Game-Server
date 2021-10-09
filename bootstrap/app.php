@@ -59,14 +59,11 @@ $app->singleton(
 |
 */
 
-$app->middleware([
-    App\Http\Middleware\CorsMiddleware::class
- ]);
-
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'admin' => App\Http\Middleware\CheckAdmin::class,
     'basicAuth' => App\Http\Middleware\BasicAuthMiddleware::class,
+    'cors' => App\Http\Middleware\CorsMiddleware::class,
 ]);
 
 /*
@@ -101,6 +98,7 @@ $app->configure('logging');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
+    'middleware' => 'cors',
 ], function ($router) {
     require __DIR__.'/../routes/api.php';
 });

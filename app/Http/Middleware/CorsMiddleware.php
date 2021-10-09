@@ -44,7 +44,7 @@ class CorsMiddleware
         // 設定 Header
         return $response->withHeaders([
             'Access-Control-Allow-Origin' => $origin,
-            'Access-Control-Allow-Methods' => '*',
+            'Access-Control-Allow-Methods' => 'OPTIONS, GET, POST',
             'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, Authorization',
         ]);
     }
