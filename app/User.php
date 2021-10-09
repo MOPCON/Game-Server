@@ -114,20 +114,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function getRewardListAttribute()
     {
-        $rewards = Reward::all()->mapWithKeys(function ($reward) {
-            return [$reward->id => $reward];
-        });
-
-        $output = [];
-        collect($this->achievement[self::WON_REWARD])
-            ->each(function ($item) use ($rewards, &$output) {
-                $reward_item = $rewards[$item['reward_id']];
-                $reward_item->redeemed = (int) $item['redeemed'];
-                $reward_item->has_won = 1;
-
-                $output[] = $reward_item->toArray();
-            });
-        return $output;
+        return $this->achievement[self::WON_REWARD];
     }
 
     public function getCurrentMissionAttribute()

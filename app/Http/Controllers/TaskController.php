@@ -66,9 +66,30 @@ class TaskController extends Controller
      */
     public function getTaskByMission(string $missionUid)
     {
-        $tasks = Task::where('mission_uid', $missionUid)
+        $gift_mission_uid = env('GIFT_MISSION_UID', '');
+        $tasks = [];
+        $with_question = true;
+        if ($missionUid == $gift_mission_uid) {
+            // check user
+            $user = $this->guard()->user();
+            $count = collect($user->achievement[User::WON_REWARD])->count();
+            $current_mission = Mission::where('id', $user->getCurrentMissionAttribute())->first();
+            if ($count > 0 || ($current_mission != null && $current_mission->uid == $gift_mission_uid)) {
+                $with_question = true;
+            } else {
+                $with_question = false;
+            }
+        }
+        if ($with_question) {
+            $tasks = Task::where('mission_uid', $missionUid)
             ->with('questions')
             ->get();
+        } else {
+            $tasks = Task::where('mission_uid', $missionUid)
+            ->get();
+        }
+
+
 
         if ($tasks->isEmpty()) {
             return $this->return404Response();
