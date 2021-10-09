@@ -258,6 +258,23 @@ class VerifyController extends Controller
                     $flow = MissionFlow::where('mission_id', $score->mission_id)
                         ->where('task_id', $score->task_id)
                         ->first();
+                    $gift_mission_id = env('GIFT_MISSION_UID', '');
+
+                    if ($flow->nextMission->uid == $gift_mission_id) {
+                        $rewardCollection = collect($achievement[User::WON_REWARD]);
+                        $exchage_reward = $rewardCollection->where('reward_id', $gift_mission_id)
+                        ->first();
+                        if ($exchage_reward == null) {
+                            array_push(
+                                $achievement[User::WON_REWARD],
+                                [
+                                    'reward_id' => $gift_mission_id,
+                                    'redeemed' => true
+                                ]
+                            );
+                        }
+                    }
+
                     $achievement[User::CURRENT_MISSION] = $flow->nextMission->id;
                 }
 
