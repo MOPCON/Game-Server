@@ -162,6 +162,11 @@ class VerifyController extends Controller
         $check_timestamp = ($input_type == 'qrcode');
 
         $question = Question::where('uid', $uid)->firstOrFail();
+
+        if ($question->KeyPool == null) {
+            return true;
+        }
+
         $vkey = $question->KeyPool->key;
 
         if ($check_timestamp) {
