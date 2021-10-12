@@ -36,6 +36,7 @@ class TaskController extends Controller
                 'name_e' => $scoreData->mission->name_e,
                 'description' => $scoreData->mission->description,
                 'description_e' => $scoreData->mission->description_e,
+                'image' => $scoreData->mission->image,
                 'order' => $scoreData->mission->order,
                 'passed' => $scoreData->pass === 1,
             ];
