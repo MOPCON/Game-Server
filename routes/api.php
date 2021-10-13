@@ -11,6 +11,8 @@
 |
 */
 
+$router->options('{any:.*}', ['middleware' => 'cors']);
+
 $router->get('/intro', 'InfoController@showGameInfo');
 $router->post('/register', 'AuthController@register');
 $router->post('/login', 'AuthController@login');
