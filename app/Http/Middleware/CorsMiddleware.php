@@ -9,6 +9,7 @@ class CorsMiddleware
     // 允許要求的 Origin
     protected $allowOrigin = [
         'http://localhost:8080',
+        'http://localhost:4200',
         'https://game.mopcon.org'
     ];
 

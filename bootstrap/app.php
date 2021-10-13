@@ -98,7 +98,6 @@ $app->configure('logging');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
-    'middleware' => 'cors',
 ], function ($router) {
     require __DIR__.'/../routes/api.php';
 });
