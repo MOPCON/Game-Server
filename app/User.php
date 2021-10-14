@@ -107,6 +107,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         });
         return Mission::with('task')->get()
             ->map(function ($mission) use ($scoresBoard) {
+                $mission->image = $mission->image == null ? [] : explode(",", $mission->image);
                 $mission->description = explode("<!--more-->", $mission->description);
                 $mission->pass = $scoresBoard[$mission['id']];
                 return $mission;
