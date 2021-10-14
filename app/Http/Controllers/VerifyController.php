@@ -177,6 +177,7 @@ class VerifyController extends Controller
                 }
             }
         } else {
+            $key = str_replace(' ', '', $key);
             $result = ($key == $vkey);
         }
         return $result;
