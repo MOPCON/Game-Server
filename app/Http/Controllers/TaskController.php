@@ -34,7 +34,7 @@ class TaskController extends Controller
                 'uid' => $scoreData->mission->uid,
                 'name' => $scoreData->mission->name,
                 'name_e' => $scoreData->mission->name_e,
-                'description' => $scoreData->mission->description,
+                'description' => explode("<!--more-->", $scoreData->mission->description),
                 'description_e' => $scoreData->mission->description_e,
                 'image' => $scoreData->mission->image,
                 'order' => $scoreData->mission->order,
