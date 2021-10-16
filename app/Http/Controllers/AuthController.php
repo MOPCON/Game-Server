@@ -150,7 +150,17 @@ class AuthController extends Controller
                 })
             ],
         ];
-        $this->validate($request, $rules);
+
+        $messages = [
+            'email.required' => '請輸入您的帳號/電子郵件',
+            'email.unique' => '此電子郵件已經註冊過',
+            'nickname.required' => '請輸入您的暱稱',
+            'password.required' => '請輸入您的密碼',
+            'ticket_number.required' => '請輸入您的購票序號',
+            'ticket_number.exists' => '尚未開放註冊(請於 10/23 再進行註冊)或票號錯誤。'
+        ];
+
+        $this->validate($request, $rules, $messages);
 
         DB::beginTransaction();
 
