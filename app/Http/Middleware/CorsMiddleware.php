@@ -42,15 +42,10 @@ class CorsMiddleware
             $response = $next($request);
         }
 
-        if(strpos($response->headers->get('content-type'), 'json') === true) {
-            $response->withHeaders([
-                'Access-Control-Allow-Origin' => $origin,
-                'Access-Control-Allow-Methods' => 'OPTIONS, GET, POST',
-                'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, Authorization',
-            ]);
-        }
-
         // 設定 Header
+        $response->headers->set('Access-Control-Allow-Origin', $origin);
+        $response->headers->set('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization');
         return $response;
     }
 }
