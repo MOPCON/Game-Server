@@ -76,6 +76,29 @@ class RewardController extends Controller
     }
 
     /**
+     * @return \Illuminate\Http\JsonResponse | \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function getRewardLink()
+    {
+        $user = $this->guard()->user();
+        $achievement = $user->achievement;
+        $wonReward = collect($achievement[User::WON_REWARD]);
+
+        if ($wonReward->isEmpty()) {
+            return $this->return404Response();
+        } else {
+            $file = base_path('public') . '/mosume_gift.zip';
+
+            $headers = array(
+                'Content-Type: 	application/zip',
+            );
+
+            return response()->download($file, 'mosume_gift.zip', $headers);
+
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  Request $request
