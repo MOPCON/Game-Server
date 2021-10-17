@@ -52,8 +52,16 @@ class AuthController extends Controller
         $rules = [
             'uid' => 'required',
             'password' => 'required',
+            'g-recaptcha-response' => 'required|recaptcha'
         ];
-        $this->validate($request, $rules);
+
+        $messages = [
+            'email.required' => '請輸入您的帳號/電子郵件',
+            'password.required' => '請輸入您的密碼',
+            'g-recaptcha-response.required' => '請完成驗證'
+        ];
+
+        $this->validate($request, $rules, $messages);
 
         $credentials = $request->only(['uid', 'password']);
 
@@ -149,6 +157,7 @@ class AuthController extends Controller
                     $query->where('user_id', null)->where('disabled', 0);
                 })
             ],
+            'g-recaptcha-response' => 'required|recaptcha'
         ];
 
         $messages = [
@@ -157,7 +166,8 @@ class AuthController extends Controller
             'nickname.required' => '請輸入您的暱稱',
             'password.required' => '請輸入您的密碼',
             'ticket_number.required' => '請輸入您的購票序號',
-            'ticket_number.exists' => '尚未開放註冊(請於 10/23 再進行註冊)或票號錯誤。'
+            'ticket_number.exists' => '尚未開放註冊(請於 10/23 再進行註冊)或票號錯誤。',
+            'g-recaptcha-response.required' => '請完成驗證'
         ];
 
         $this->validate($request, $rules, $messages);
